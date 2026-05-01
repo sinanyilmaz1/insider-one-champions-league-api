@@ -119,7 +119,7 @@ jobs:
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Copy testing env
-        run: cp .env.testing .env
+        run: cp .env.testing.example .env
 
       - name: Generate APP_KEY
         run: php artisan key:generate
