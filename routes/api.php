@@ -13,5 +13,6 @@ Route::post('/fixtures/generate', [FixtureController::class, 'generate']);
 
 Route::post('/simulation/play-week', [SimulationController::class, 'playWeek']);
 Route::post('/simulation/play-all', [SimulationController::class, 'playAll']);
+Route::delete('/simulation', [SimulationController::class, 'reset']);
 
 Route::get('/league/standings', [LeagueController::class, 'standings']);
