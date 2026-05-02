@@ -6,6 +6,7 @@ use App\Http\Resources\FixtureResource;
 use App\Models\Fixture;
 use App\Models\MatchResult;
 use App\Services\Simulation\MatchSimulator;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -18,9 +19,7 @@ class SimulationController extends Controller
             ->min('week');
 
         if ($nextWeek === null) {
-            return response()->json([
-                'message' => 'All weeks have been played. Reset to play again.',
-            ], 409);
+            return $this->seasonCompleteResponse();
         }
 
         $playedWeek = (int) $nextWeek;
@@ -30,6 +29,56 @@ class SimulationController extends Controller
             ->orderBy('id')
             ->get();
 
+        $this->simulateFixtures($fixtures, $simulator);
+
+        $playedFixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
+            ->where('week', $playedWeek)
+            ->orderBy('id')
+            ->get();
+
+        return response()->json([
+            'played_week' => $playedWeek,
+            'last_played_week' => $playedWeek,
+            'next_week' => $this->nextUnplayedWeek(),
+            'fixtures' => FixtureResource::collection($playedFixtures),
+        ]);
+    }
+
+    public function playAll(MatchSimulator $simulator): JsonResponse
+    {
+        $fixtures = Fixture::with(['homeTeam', 'awayTeam'])
+            ->whereDoesntHave('matchResult')
+            ->orderBy('week')
+            ->orderBy('id')
+            ->get();
+
+        if ($fixtures->isEmpty()) {
+            return $this->seasonCompleteResponse();
+        }
+
+        $playedWeeks = $fixtures->pluck('week')->unique()->sort()->values()->all();
+
+        $this->simulateFixtures($fixtures, $simulator);
+
+        $playedFixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
+            ->whereIn('week', $playedWeeks)
+            ->orderBy('week')
+            ->orderBy('id')
+            ->get();
+
+        return response()->json([
+            'played_weeks' => array_map('intval', $playedWeeks),
+            'last_played_week' => (int) end($playedWeeks),
+            'next_week' => $this->nextUnplayedWeek(),
+            'fixtures' => FixtureResource::collection($playedFixtures),
+        ]);
+    }
+
+    /**
+     * @param  EloquentCollection<int, Fixture>  $fixtures
+     */
+    private function simulateFixtures(EloquentCollection $fixtures, MatchSimulator $simulator): void
+    {
         DB::transaction(function () use ($fixtures, $simulator): void {
             foreach ($fixtures as $fixture) {
                 $outcome = $simulator->simulate($fixture->homeTeam, $fixture->awayTeam);
@@ -41,21 +90,21 @@ class SimulationController extends Controller
                 ]);
             }
         });
+    }
 
-        $playedFixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
-            ->where('week', $playedWeek)
-            ->orderBy('id')
-            ->get();
-
-        $nextWeekAfter = Fixture::query()
+    private function nextUnplayedWeek(): ?int
+    {
+        $week = Fixture::query()
             ->whereDoesntHave('matchResult')
             ->min('week');
 
+        return $week !== null ? (int) $week : null;
+    }
+
+    private function seasonCompleteResponse(): JsonResponse
+    {
         return response()->json([
-            'played_week' => $playedWeek,
-            'last_played_week' => $playedWeek,
-            'next_week' => $nextWeekAfter !== null ? (int) $nextWeekAfter : null,
-            'fixtures' => FixtureResource::collection($playedFixtures),
-        ]);
+            'message' => 'All weeks have been played. Reset to play again.',
+        ], 409);
     }
 }
