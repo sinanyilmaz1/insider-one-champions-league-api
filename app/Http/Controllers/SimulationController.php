@@ -8,6 +8,7 @@ use App\Models\MatchResult;
 use App\Services\Simulation\MatchSimulator;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class SimulationController extends Controller
@@ -42,6 +43,16 @@ class SimulationController extends Controller
             'next_week' => $this->nextUnplayedWeek(),
             'fixtures' => FixtureResource::collection($playedFixtures),
         ]);
+    }
+
+    public function reset(): Response
+    {
+        DB::transaction(function (): void {
+            MatchResult::query()->delete();
+            Fixture::query()->delete();
+        });
+
+        return response()->noContent();
     }
 
     public function playAll(MatchSimulator $simulator): JsonResponse
