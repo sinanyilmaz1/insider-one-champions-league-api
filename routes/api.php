@@ -11,3 +11,4 @@ Route::get('/fixtures', [FixtureController::class, 'index']);
 Route::post('/fixtures/generate', [FixtureController::class, 'generate']);
 
 Route::post('/simulation/play-week', [SimulationController::class, 'playWeek']);
+Route::post('/simulation/play-all', [SimulationController::class, 'playAll']);
