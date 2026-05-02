@@ -1,0 +1,24 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('match_results', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('fixture_id')->unique()->constrained('champions_league.fixtures')->cascadeOnDelete();
+            $table->unsignedTinyInteger('home_score');
+            $table->unsignedTinyInteger('away_score');
+            $table->timestampsTz();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('match_results');
+    }
+};
