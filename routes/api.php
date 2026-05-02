@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\FixtureController;
+use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\SimulationController;
 use App\Http\Controllers\TeamController;
 use Illuminate\Support\Facades\Route;
@@ -12,3 +13,5 @@ Route::post('/fixtures/generate', [FixtureController::class, 'generate']);
 
 Route::post('/simulation/play-week', [SimulationController::class, 'playWeek']);
 Route::post('/simulation/play-all', [SimulationController::class, 'playAll']);
+
+Route::get('/league/standings', [LeagueController::class, 'standings']);
