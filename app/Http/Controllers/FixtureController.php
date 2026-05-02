@@ -12,6 +12,22 @@ use Illuminate\Support\Facades\DB;
 
 class FixtureController extends Controller
 {
+    public function index(): JsonResponse
+    {
+        $weeks = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
+            ->orderBy('week')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('week')
+            ->map(fn ($fixtures, $week) => [
+                'week' => (int) $week,
+                'fixtures' => FixtureResource::collection($fixtures),
+            ])
+            ->values();
+
+        return response()->json($weeks);
+    }
+
     public function generate(FixtureGenerator $generator): JsonResponse
     {
         if (MatchResult::query()->exists()) {
@@ -35,7 +51,7 @@ class FixtureController extends Controller
             }
         });
 
-        $fixtures = Fixture::with(['homeTeam', 'awayTeam'])
+        $fixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
             ->orderBy('week')
             ->orderBy('id')
             ->get();
