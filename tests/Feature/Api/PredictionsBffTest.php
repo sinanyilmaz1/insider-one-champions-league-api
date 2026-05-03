@@ -69,6 +69,23 @@ class PredictionsBffTest extends TestCase
         Http::assertNothingSent();
     }
 
+    public function test_predictions_endpoint_degrades_gracefully_on_microservice_rate_limit(): void
+    {
+        Http::fake([
+            '*/api/v1/predictions' => Http::response(['message' => 'Too many'], 429, ['Retry-After' => '30']),
+        ]);
+
+        $this->postJson('/api/fixtures/generate')->assertStatus(200);
+        $this->postJson('/api/simulation/play-week')->assertStatus(200);
+        $this->postJson('/api/simulation/play-week')->assertStatus(200);
+        $this->postJson('/api/simulation/play-week')->assertStatus(200);
+
+        $response = $this->getJson('/api/predictions');
+
+        $response->assertOk()
+            ->assertJsonPath('predictions', []);
+    }
+
     public function test_predictions_endpoint_degrades_gracefully_on_microservice_error(): void
     {
         Http::fake([

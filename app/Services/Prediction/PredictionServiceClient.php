@@ -38,6 +38,13 @@ final class PredictionServiceClient
             throw PredictionServiceException::authFailed();
         }
 
+        if ($response->status() === 429) {
+            $retryAfter = $response->header('Retry-After');
+            $retryAfter = $retryAfter === '' ? null : (int) $retryAfter;
+            Log::warning('Prediction service rate-limited the request', ['retry_after' => $retryAfter]);
+            throw PredictionServiceException::rateLimited($retryAfter);
+        }
+
         if ($response->status() === 422) {
             /** @var array<string, mixed> $errors */
             $errors = $response->json('errors') ?? [];
