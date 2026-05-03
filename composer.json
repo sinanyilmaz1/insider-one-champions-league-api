@@ -58,7 +58,7 @@
         ],
         "test:ci": [
             "@php artisan config:clear --ansi",
-            "@php artisan test --parallel"
+            "@php artisan test"
         ],
         "ci": [
             "@composer lint:check",
