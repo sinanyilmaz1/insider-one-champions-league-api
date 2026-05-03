@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\FixtureResource;
+use App\Http\Resources\MutationStateResource;
 use App\Models\Fixture;
 use App\Models\MatchResult;
 use App\Services\Simulation\MatchSimulator;
+use App\Services\State\MutationStateAssembler;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class SimulationController extends Controller
 {
-    public function playWeek(MatchSimulator $simulator): JsonResponse
+    public function playWeek(MatchSimulator $simulator, MutationStateAssembler $assembler): JsonResponse|MutationStateResource
     {
         $nextWeek = Fixture::query()
             ->whereDoesntHave('matchResult')
@@ -23,39 +23,17 @@ class SimulationController extends Controller
             return $this->seasonCompleteResponse();
         }
 
-        $playedWeek = (int) $nextWeek;
-
         $fixtures = Fixture::with(['homeTeam', 'awayTeam'])
-            ->where('week', $playedWeek)
+            ->where('week', (int) $nextWeek)
             ->orderBy('id')
             ->get();
 
         $this->simulateFixtures($fixtures, $simulator);
 
-        $playedFixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
-            ->where('week', $playedWeek)
-            ->orderBy('id')
-            ->get();
-
-        return response()->json([
-            'played_week' => $playedWeek,
-            'last_played_week' => $playedWeek,
-            'next_week' => $this->nextUnplayedWeek(),
-            'fixtures' => FixtureResource::collection($playedFixtures),
-        ]);
+        return new MutationStateResource($assembler->assemble());
     }
 
-    public function reset(): Response
-    {
-        DB::transaction(function (): void {
-            MatchResult::query()->delete();
-            Fixture::query()->delete();
-        });
-
-        return response()->noContent();
-    }
-
-    public function playAll(MatchSimulator $simulator): JsonResponse
+    public function playAll(MatchSimulator $simulator, MutationStateAssembler $assembler): JsonResponse|MutationStateResource
     {
         $fixtures = Fixture::with(['homeTeam', 'awayTeam'])
             ->whereDoesntHave('matchResult')
@@ -67,22 +45,19 @@ class SimulationController extends Controller
             return $this->seasonCompleteResponse();
         }
 
-        $playedWeeks = $fixtures->pluck('week')->unique()->sort()->values()->all();
-
         $this->simulateFixtures($fixtures, $simulator);
 
-        $playedFixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
-            ->whereIn('week', $playedWeeks)
-            ->orderBy('week')
-            ->orderBy('id')
-            ->get();
+        return new MutationStateResource($assembler->assemble());
+    }
 
-        return response()->json([
-            'played_weeks' => array_map('intval', $playedWeeks),
-            'last_played_week' => (int) end($playedWeeks),
-            'next_week' => $this->nextUnplayedWeek(),
-            'fixtures' => FixtureResource::collection($playedFixtures),
-        ]);
+    public function reset(MutationStateAssembler $assembler): MutationStateResource
+    {
+        DB::transaction(function (): void {
+            MatchResult::query()->delete();
+            Fixture::query()->delete();
+        });
+
+        return new MutationStateResource($assembler->assemble());
     }
 
     /**
@@ -101,15 +76,6 @@ class SimulationController extends Controller
                 ]);
             }
         });
-    }
-
-    private function nextUnplayedWeek(): ?int
-    {
-        $week = Fixture::query()
-            ->whereDoesntHave('matchResult')
-            ->min('week');
-
-        return $week !== null ? (int) $week : null;
     }
 
     private function seasonCompleteResponse(): JsonResponse

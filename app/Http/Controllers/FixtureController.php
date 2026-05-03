@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\FixtureResource;
+use App\Http\Resources\MutationStateResource;
 use App\Models\Fixture;
 use App\Models\MatchResult;
 use App\Models\Team;
 use App\Services\Fixtures\FixtureGenerator;
+use App\Services\State\MutationStateAssembler;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -28,7 +30,7 @@ class FixtureController extends Controller
         return response()->json($weeks);
     }
 
-    public function generate(FixtureGenerator $generator): JsonResponse
+    public function generate(FixtureGenerator $generator, MutationStateAssembler $assembler): JsonResponse|MutationStateResource
     {
         if (MatchResult::query()->exists()) {
             return response()->json([
@@ -51,13 +53,6 @@ class FixtureController extends Controller
             }
         });
 
-        $fixtures = Fixture::with(['homeTeam', 'awayTeam', 'matchResult'])
-            ->orderBy('week')
-            ->orderBy('id')
-            ->get();
-
-        return FixtureResource::collection($fixtures)
-            ->response()
-            ->setStatusCode(201);
+        return new MutationStateResource($assembler->assemble());
     }
 }

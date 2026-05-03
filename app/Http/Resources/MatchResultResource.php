@@ -16,8 +16,8 @@ class MatchResultResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'home_score' => $this->home_score,
-            'away_score' => $this->away_score,
+            'homeScore' => $this->home_score,
+            'awayScore' => $this->away_score,
         ];
     }
 }

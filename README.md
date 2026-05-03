@@ -9,7 +9,7 @@ Companion repo: `insider-one-champions-league-web` (Vue 3 + Vite + TS).
 - PHP 8.3+
 - Laravel 13.7
 - PostgreSQL 17 (Docker)
-- Larastan level 5 + Pint + PHPUnit/ParaTest
+- Larastan level 5 + Pint + PHPUnit
 - Husky + commitlint (conventional commits)
 
 ## Prerequisites
@@ -68,9 +68,51 @@ composer lint        # apply Pint formatting
 composer lint:check  # check formatting only
 composer analyse     # PHPStan / Larastan level 5
 composer test        # PHPUnit
-composer test:ci     # PHPUnit in parallel
+composer test:ci     # PHPUnit (sequential, used in CI)
 composer ci          # lint:check + analyse + test:ci
 ```
+
+## API contract
+
+All routes are prefixed with `/api`. JSON keys (output and request bodies) are **camelCase**. Internal DB columns and PHP properties stay snake_case.
+
+### Reads
+
+| Method | Path | Returns |
+|---|---|---|
+| `GET` | `/teams` | `Team[]` — `{ id, name, strength }` |
+| `GET` | `/fixtures` | `[ { week, fixtures: Fixture[] }, ... ]` grouped by week |
+| `GET` | `/league/standings` | `{ lastPlayedWeek, nextWeek, standings: StandingRow[] }` |
+| `GET` | `/predictions` | `{ lastPlayedWeek, nextWeek, predictions: TeamPrediction[] }` — `predictions: []` when `lastPlayedWeek < 3` |
+
+### Mutations — all return the same envelope
+
+Every mutation returns the **full simulation state** (no follow-up GETs needed):
+
+```json
+{
+  "standings":      [ { "team": {...}, "played": N, "won": N, "drawn": N, "lost": N, "goalsFor": N, "goalsAgainst": N, "goalDifference": N, "points": N }, ... ],
+  "predictions":    [ { "team": {...}, "championPercentage": 64.2 }, ... ],
+  "fixtures":       [ { "id": N, "week": N, "homeTeam": {...}, "awayTeam": {...}, "matchResult": { "id": N, "homeScore": N, "awayScore": N } | null }, ... ],
+  "lastPlayedWeek": N | null,
+  "nextWeek":       N | null
+}
+```
+
+| Method | Path | Status | Notes |
+|---|---|---|---|
+| `POST` | `/fixtures/generate` | 200 | 409 if match results exist (must `DELETE /simulation` first) |
+| `POST` | `/simulation/play-week` | 200 | 409 once all weeks played |
+| `POST` | `/simulation/play-all` | 200 | 409 if no unplayed fixtures remain |
+| `DELETE` | `/simulation` | 200 | Wipes both `match_results` and `fixtures`, leaves `teams` |
+| `PUT` | `/match-results/{id}` | 200 | Body: `{ "homeScore": N, "awayScore": N }` (camelCase, both 0–255). 422 on invalid body, 404 on unknown id |
+
+**Empty-state guarantees:** `standings` always returns one row per team (4 zeroed rows after reset/generate); `predictions` is always an array (empty when `lastPlayedWeek < 3` or `null`); `fixtures` is `[]` after reset.
+
+### Architecture notes
+
+- All five mutation endpoints route through `App\Services\State\MutationStateAssembler::assemble()` — single source of truth for the response envelope. Controllers do their mutation, then return `new MutationStateResource($assembler->assemble())`.
+- Predictions cost ~10,000 Monte Carlo iterations (~400ms) when `lastPlayedWeek >= 3`; gated to `[]` otherwise so most calls are cheap.
 
 ## Branching and commits
 

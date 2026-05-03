@@ -124,5 +124,10 @@ jobs:
       - name: Generate APP_KEY
         run: php artisan key:generate
 
+      - name: Create champions_league schema in test database
+        env:
+          PGPASSWORD: insider_one_local_password
+        run: psql -h 127.0.0.1 -U insider_one -d insider_one_test -c 'CREATE SCHEMA IF NOT EXISTS champions_league;'
+
       - name: Run tests
         run: composer test:ci

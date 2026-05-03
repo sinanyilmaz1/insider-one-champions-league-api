@@ -18,8 +18,8 @@ class UpdateMatchResultRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'home_score' => ['required', 'integer', 'between:0,255'],
-            'away_score' => ['required', 'integer', 'between:0,255'],
+            'homeScore' => ['required', 'integer', 'between:0,255'],
+            'awayScore' => ['required', 'integer', 'between:0,255'],
         ];
     }
 }
