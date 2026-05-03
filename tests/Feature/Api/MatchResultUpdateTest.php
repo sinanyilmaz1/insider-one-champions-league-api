@@ -4,13 +4,21 @@ namespace Tests\Feature\Api;
 
 use App\Models\MatchResult;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesPredictionService;
 use Tests\TestCase;
 
 class MatchResultUpdateTest extends TestCase
 {
+    use FakesPredictionService;
     use RefreshDatabase;
 
     protected $seed = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->fakePredictionService();
+    }
 
     public function test_update_returns_envelope_reflecting_the_edit(): void
     {
