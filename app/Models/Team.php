@@ -9,16 +9,22 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property string $name
- * @property int $strength
+ * @property int $attack
+ * @property int $defense
+ * @property int $midfield
+ * @property float $home_advantage
  * @property Carbon $created_at
  * @property Carbon $updated_at
  */
 class Team extends Model
 {
-    protected $fillable = ['name', 'strength'];
+    protected $fillable = ['name', 'attack', 'defense', 'midfield', 'home_advantage'];
 
     protected $casts = [
-        'strength' => 'integer',
+        'attack' => 'integer',
+        'defense' => 'integer',
+        'midfield' => 'integer',
+        'home_advantage' => 'decimal:2',
     ];
 
     /** @return HasMany<Fixture, $this> */

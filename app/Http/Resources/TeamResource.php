@@ -17,7 +17,10 @@ class TeamResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'strength' => $this->strength,
+            'attack' => $this->attack,
+            'defense' => $this->defense,
+            'midfield' => $this->midfield,
+            'homeAdvantage' => (float) $this->home_advantage,
         ];
     }
 }
