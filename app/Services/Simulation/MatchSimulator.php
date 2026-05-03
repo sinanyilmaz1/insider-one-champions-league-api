@@ -17,13 +17,25 @@ class MatchSimulator
 
     public function simulate(Team $home, Team $away): MatchOutcome
     {
-        $homeLambda = $this->baseGoals * ($home->strength / self::AVG_STRENGTH) * $this->homeBoost;
-        $awayLambda = $this->baseGoals * ($away->strength / self::AVG_STRENGTH);
+        $homeLambda = $this->baseGoals * ($this->strengthProxy($home) / self::AVG_STRENGTH) * $this->homeBoost;
+        $awayLambda = $this->baseGoals * ($this->strengthProxy($away) / self::AVG_STRENGTH);
 
         return new MatchOutcome(
             homeScore: $this->poisson($homeLambda),
             awayScore: $this->poisson($awayLambda),
         );
+    }
+
+    /**
+     * Temporary strength-equivalent derived from `attack` so this simulator keeps
+     * working until PR 2 replaces the formula with the Poisson model that consumes
+     * attack/defense/midfield/home_advantage directly.
+     *
+     * @deprecated Removed in PR 2 (feat/poisson-match-simulator).
+     */
+    private function strengthProxy(Team $team): int
+    {
+        return (int) round($team->attack / 10);
     }
 
     /**
