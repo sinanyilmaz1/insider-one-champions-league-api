@@ -3,13 +3,21 @@
 namespace Tests\Feature\Api;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesPredictionService;
 use Tests\TestCase;
 
 class SimulationPlayAllTest extends TestCase
 {
+    use FakesPredictionService;
     use RefreshDatabase;
 
     protected $seed = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->fakePredictionService();
+    }
 
     public function test_play_all_returns_full_envelope_with_predictions(): void
     {

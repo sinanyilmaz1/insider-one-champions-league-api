@@ -3,13 +3,21 @@
 namespace Tests\Feature\Api;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\FakesPredictionService;
 use Tests\TestCase;
 
 class SimulationPlayWeekTest extends TestCase
 {
+    use FakesPredictionService;
     use RefreshDatabase;
 
     protected $seed = true;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->fakePredictionService();
+    }
 
     public function test_play_week_returns_envelope_after_first_call(): void
     {

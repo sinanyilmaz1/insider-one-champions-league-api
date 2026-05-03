@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'prediction' => [
+        'url' => env('PREDICTION_SERVICE_URL', 'http://localhost:8081'),
+        'auth_token' => env('PREDICTION_SERVICE_AUTH_TOKEN'),
+        'timeout' => (int) env('PREDICTION_SERVICE_TIMEOUT', 5),
+    ],
+
 ];
