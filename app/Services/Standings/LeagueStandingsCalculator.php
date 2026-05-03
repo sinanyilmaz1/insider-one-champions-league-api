@@ -2,7 +2,6 @@
 
 namespace App\Services\Standings;
 
-use App\Models\MatchResult;
 use App\Models\Team;
 
 class LeagueStandingsCalculator
@@ -13,10 +12,10 @@ class LeagueStandingsCalculator
 
     /**
      * @param  list<Team>  $teams
-     * @param  list<MatchResult>  $results  match results with fixture relation eager-loaded
+     * @param  list<ScoredMatch>  $matches
      * @return list<StandingRow>
      */
-    public function calculate(array $teams, array $results): array
+    public function calculate(array $teams, array $matches): array
     {
         $stats = [];
         foreach ($teams as $team) {
@@ -32,11 +31,11 @@ class LeagueStandingsCalculator
             ];
         }
 
-        foreach ($results as $result) {
-            $homeId = $result->fixture->home_team_id;
-            $awayId = $result->fixture->away_team_id;
-            $home = $result->home_score;
-            $away = $result->away_score;
+        foreach ($matches as $match) {
+            $homeId = $match->homeTeamId;
+            $awayId = $match->awayTeamId;
+            $home = $match->homeScore;
+            $away = $match->awayScore;
 
             $stats[$homeId]['played']++;
             $stats[$awayId]['played']++;
