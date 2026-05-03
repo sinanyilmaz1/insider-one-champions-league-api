@@ -82,6 +82,22 @@ class PredictionServiceClientTest extends TestCase
     }
 
     #[Test]
+    public function throws_rate_limited_on_429(): void
+    {
+        Http::fake([
+            '*/api/v1/predictions' => Http::response(['message' => 'Too many'], 429, ['Retry-After' => '30']),
+        ]);
+
+        try {
+            $this->client()->predict([]);
+            self::fail('Expected exception not thrown');
+        } catch (PredictionServiceException $e) {
+            self::assertStringContainsString('rate-limited', $e->getMessage());
+            self::assertStringContainsString('30s', $e->getMessage());
+        }
+    }
+
+    #[Test]
     public function throws_bad_response_on_5xx(): void
     {
         Http::fake([

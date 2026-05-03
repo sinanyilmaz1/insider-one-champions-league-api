@@ -19,6 +19,13 @@ class PredictionServiceException extends RuntimeException
         return new self('Prediction service rejected authentication.');
     }
 
+    public static function rateLimited(?int $retryAfter = null): self
+    {
+        $detail = $retryAfter !== null ? " (retry after {$retryAfter}s)" : '';
+
+        return new self('Prediction service rate-limited the request.'.$detail);
+    }
+
     /**
      * @param  array<string, mixed>  $errors
      */
