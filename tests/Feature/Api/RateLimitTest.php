@@ -8,12 +8,10 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Tests\Concerns\FakesPredictionService;
 use Tests\TestCase;
 
 class RateLimitTest extends TestCase
 {
-    use FakesPredictionService;
     use RefreshDatabase;
 
     protected $seed = true;
@@ -21,7 +19,6 @@ class RateLimitTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->fakePredictionService();
 
         // Tighten the limits so we can exhaust the buckets quickly.
         RateLimiter::for('api-read', fn (Request $r) => Limit::perMinute(3)->by((string) $r->ip()));
