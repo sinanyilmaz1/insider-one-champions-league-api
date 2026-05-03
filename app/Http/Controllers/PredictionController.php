@@ -21,8 +21,8 @@ class PredictionController extends Controller
 
         if ($lastPlayedWeek === null || $lastPlayedWeek < self::MIN_PLAYED_WEEK) {
             return response()->json([
-                'last_played_week' => $lastPlayedWeek,
-                'next_week' => $nextWeek,
+                'lastPlayedWeek' => $lastPlayedWeek,
+                'nextWeek' => $nextWeek,
                 'predictions' => [],
             ]);
         }
@@ -49,8 +49,8 @@ class PredictionController extends Controller
         $predictions = $predictor->predict($teams, $playedMatches, $unplayedFixtures);
 
         return response()->json([
-            'last_played_week' => $lastPlayedWeek,
-            'next_week' => $nextWeek,
+            'lastPlayedWeek' => $lastPlayedWeek,
+            'nextWeek' => $nextWeek,
             'predictions' => TeamPredictionResource::collection($predictions),
         ]);
     }

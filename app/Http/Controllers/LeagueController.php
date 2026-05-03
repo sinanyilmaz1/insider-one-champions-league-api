@@ -28,8 +28,8 @@ class LeagueController extends Controller
         $rows = $calculator->calculate($teams, $matches);
 
         return response()->json([
-            'last_played_week' => $this->lastPlayedWeek(),
-            'next_week' => $this->nextUnplayedWeek(),
+            'lastPlayedWeek' => $this->lastPlayedWeek(),
+            'nextWeek' => $this->nextUnplayedWeek(),
             'standings' => StandingRowResource::collection($rows),
         ]);
     }

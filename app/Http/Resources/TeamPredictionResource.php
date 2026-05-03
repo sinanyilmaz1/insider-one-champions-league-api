@@ -16,7 +16,7 @@ class TeamPredictionResource extends JsonResource
     {
         return [
             'team' => new TeamResource($this->team),
-            'champion_percentage' => round($this->championPercentage, 2),
+            'championPercentage' => round($this->championPercentage, 2),
         ];
     }
 }

@@ -38,9 +38,9 @@ class SimulationController extends Controller
             ->get();
 
         return response()->json([
-            'played_week' => $playedWeek,
-            'last_played_week' => $playedWeek,
-            'next_week' => $this->nextUnplayedWeek(),
+            'playedWeek' => $playedWeek,
+            'lastPlayedWeek' => $playedWeek,
+            'nextWeek' => $this->nextUnplayedWeek(),
             'fixtures' => FixtureResource::collection($playedFixtures),
         ]);
     }
@@ -78,9 +78,9 @@ class SimulationController extends Controller
             ->get();
 
         return response()->json([
-            'played_weeks' => array_map('intval', $playedWeeks),
-            'last_played_week' => (int) end($playedWeeks),
-            'next_week' => $this->nextUnplayedWeek(),
+            'playedWeeks' => array_map('intval', $playedWeeks),
+            'lastPlayedWeek' => (int) end($playedWeeks),
+            'nextWeek' => $this->nextUnplayedWeek(),
             'fixtures' => FixtureResource::collection($playedFixtures),
         ]);
     }

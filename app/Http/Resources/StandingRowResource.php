@@ -20,9 +20,9 @@ class StandingRowResource extends JsonResource
             'won' => $this->won,
             'drawn' => $this->drawn,
             'lost' => $this->lost,
-            'goals_for' => $this->goalsFor,
-            'goals_against' => $this->goalsAgainst,
-            'goal_difference' => $this->goalDifference,
+            'goalsFor' => $this->goalsFor,
+            'goalsAgainst' => $this->goalsAgainst,
+            'goalDifference' => $this->goalDifference,
             'points' => $this->points,
         ];
     }
