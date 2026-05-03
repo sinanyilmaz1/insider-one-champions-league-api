@@ -9,7 +9,6 @@ use App\Services\Simulation\MatchSimulator;
 use App\Services\State\MutationStateAssembler;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class SimulationController extends Controller
@@ -51,14 +50,14 @@ class SimulationController extends Controller
         return new MutationStateResource($assembler->assemble());
     }
 
-    public function reset(): Response
+    public function reset(MutationStateAssembler $assembler): MutationStateResource
     {
         DB::transaction(function (): void {
             MatchResult::query()->delete();
             Fixture::query()->delete();
         });
 
-        return response()->noContent();
+        return new MutationStateResource($assembler->assemble());
     }
 
     /**
