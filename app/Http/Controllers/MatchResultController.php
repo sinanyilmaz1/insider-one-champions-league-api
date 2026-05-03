@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateMatchResultRequest;
-use App\Http\Resources\MatchResultResource;
+use App\Http\Resources\MutationStateResource;
 use App\Models\MatchResult;
+use App\Services\State\MutationStateAssembler;
 
 class MatchResultController extends Controller
 {
-    public function update(UpdateMatchResultRequest $request, MatchResult $matchResult): MatchResultResource
-    {
+    public function update(
+        UpdateMatchResultRequest $request,
+        MatchResult $matchResult,
+        MutationStateAssembler $assembler,
+    ): MutationStateResource {
         $validated = $request->validated();
 
         $matchResult->update([
@@ -17,6 +21,6 @@ class MatchResultController extends Controller
             'away_score' => $validated['awayScore'],
         ]);
 
-        return new MatchResultResource($matchResult);
+        return new MutationStateResource($assembler->assemble());
     }
 }
