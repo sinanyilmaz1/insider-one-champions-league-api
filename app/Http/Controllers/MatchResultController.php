@@ -10,7 +10,12 @@ class MatchResultController extends Controller
 {
     public function update(UpdateMatchResultRequest $request, MatchResult $matchResult): MatchResultResource
     {
-        $matchResult->update($request->validated());
+        $validated = $request->validated();
+
+        $matchResult->update([
+            'home_score' => $validated['homeScore'],
+            'away_score' => $validated['awayScore'],
+        ]);
 
         return new MatchResultResource($matchResult);
     }
